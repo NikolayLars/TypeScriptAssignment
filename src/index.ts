@@ -37,20 +37,78 @@ const down: HTMLElement  = document.getElementById("down")!;
 const c: string= '&#8451;';
 const moreInfos: HTMLElement | null = document.getElementById("moreInfos");
 const go: HTMLElement | null =  document.getElementById("go")!;
-go.addEventListener("click", getWeather);
+const add: HTMLElement | null =  document.getElementById("add")!;
+const next: HTMLElement | null =  document.getElementById("NextPage")!;
+go.addEventListener("click", function(){getWeather((<HTMLInputElement>document.getElementById("search")).value )});
+add.addEventListener("click", addFav);
+next.addEventListener("click", getWeatherFav);
 
+let city:string;
 
-function getWeather(){
+function getWeather(x:string){
     
-    let city:string = (<HTMLInputElement>document.getElementById("search")).value ;
 
-    fetch(`http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${appId}`).then(result => result.json())
+    fetch(`http://api.openweathermap.org/data/2.5/weather?q=${x}&appid=${appId}`).then(result => result.json())
     .then(data => {
         createCards(data);
         answer = data;
+        console.log(data);
 
     });
 
+}
+
+function getWeatherFav(){
+    
+    let x :string;
+
+    let favs : Array<any> = [];
+    
+    favs[0] = window.localStorage.getItem('Fav');
+    favs[1] = window.localStorage.getItem('Fav1');
+    favs[2] = window.localStorage.getItem('Fav2');
+
+    for (let index = 0; index < favs.length; index++) {
+        if (favs[index]!==null){
+            fetch(`http://api.openweathermap.org/data/2.5/weather?q=${favs[index]}&appid=${appId}`).then(result => result.json())
+            .then(data => {
+                createCard(data);
+                answer = data;
+                console.log(data);
+        
+            });
+        }
+        
+    }
+    
+
+}
+
+
+
+function createCard(x:any) {
+    let card: string;
+    let tmp1 = x.weather[0].description;
+    statusSvg = getIcon(tmp1);
+    card =`<div class="row justify-content-center align-items-center top-right-inner">
+    <div class="col-12"><div class="${statusSvg} statusicon">
+    </div>
+    <span>${x.name}</span>
+    </div>
+    <div class="col-12">
+    <span>Temp: ${Math.round(x.main.temp-273.15)}${c}</span>
+    </div>
+    </div>`;
+    let tmp = document.getElementsByClassName("fav")!;
+    let cards = Array.prototype.slice.call(tmp);
+    let index:number =0;
+    for(let i=0;i<cards.length+1;i++) {
+        if(cards[i].innerHTML===""){
+            index = i;
+            i = cards.length+1;
+        }
+    }
+    cards[index].innerHTML=card;
 }
 
 function temp(x: number){
@@ -58,28 +116,56 @@ function temp(x: number){
 }
 
 
+function addFav(){
+     
+    if (window.localStorage.getItem('Fav')===null){
+        window.localStorage.setItem('Fav',answer.name);
+    } else if (window.localStorage.getItem('Fav1')===null){
+        window.localStorage.setItem('Fav1',answer.name);
+    } else if (window.localStorage.getItem('Fav2')===null) {
+        window.localStorage.setItem('Fav2',answer.name);
+    } else {
+        window.localStorage.setItem('Fav2',window.localStorage.getItem('Fav1')!);
+        window.localStorage.setItem('Fav1',window.localStorage.getItem('Fav')!);
+        window.localStorage.setItem('Fav',answer.name);
+    }
+}
+
+
+function myLocation(){
+    fetch('https://extreme-ip-lookup.com/json/').then( res => res.json()).then(response => {getWeather(response.country)});
+    
+}
+
+
+
+function getIcon(x :any){
+    if (x.includes('snow')){
+        statusSvg = 'lightsnow';
+    } else if (x.includes('clear sky')){
+        statusSvg = 'clearsky';
+    } else if (x.includes('few clouds')){
+        statusSvg = 'fewclouds';
+    } else if (x.includes('scattered clouds')){
+        statusSvg = 'scatteredclouds';
+    } else if (x.includes('broken clouds')){
+        statusSvg = 'brokenclouds';
+    } else if (x.includes('shower rain')){
+        statusSvg = 'showerrain';
+    } else if (x.includes('rain')){
+        statusSvg = 'rain';
+    } else if (x.includes('thunderstorm')){
+        statusSvg = 'thunderstorm';
+    } else if (x.includes('mist')){
+        statusSvg = 'mist';
+    }
+    return statusSvg;
+}
+
 function createCards(x:any){
    let temp = x.weather[0].description;
-if (temp.includes('snow')){
-    statusSvg = 'lightsnow';
-} else if (temp.includes('clear sky')){
-    statusSvg = 'clearsky';
-} else if (temp.includes('few clouds')){
-    statusSvg = 'fewclouds';
-} else if (temp.includes('scattered clouds')){
-    statusSvg = 'scatteredclouds';
-} else if (temp.includes('broken clouds')){
-    statusSvg = 'brokenclouds';
-} else if (temp.includes('shower rain')){
-    statusSvg = 'showerrain';
-} else if (temp.includes('rain')){
-    statusSvg = 'rain';
-} else if (temp.includes('thunderstorm')){
-    statusSvg = 'thunderstorm';
-} else if (temp.includes('mist')){
-    statusSvg = 'mist';
-}
-        
+
+    statusSvg = getIcon(temp);
      
 
 
@@ -88,7 +174,7 @@ let cityTemplate =`<div class="row justify-content-center align-items-center top
 document.getElementById("top-right")!.innerHTML=cityTemplate;
 let tglclick: HTMLElement = document.getElementById("toglle")!;
 tglclick.addEventListener("click", toggleDropdown);
-
+add!.style.visibility = "unset";
 
 }
 
