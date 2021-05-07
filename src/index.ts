@@ -72,9 +72,6 @@ function getWeatherFav(){
                 answer = data;
                 console.log(data);       
             })
-            .catch(function(error){
-                errorFetch(error);
-            });
         }   
     }
     if(document.getElementById('second')!.getBoundingClientRect().width>0){
@@ -92,6 +89,9 @@ function errorFetch(x: any){
 
 
 function createCard(x:any) {
+    let favs = document.getElementsByClassName("fav")!;
+    
+    let cards = Array.prototype.slice.call(favs);
     let card: string;
     let tmp1 = x.weather[0].description;
     statusSvg = getIcon(tmp1);
@@ -101,19 +101,26 @@ function createCard(x:any) {
     <span>${x.name}</span>
     </div>
     <div class="col-12">
-    <span>Temp: ${Math.round(x.main.temp-273.15)}${c}</span>
+    <span>Temp: ${Math.round(temp(x.main.temp))}${c}</span>
     </div>
     </div>`;
-    let tmp = document.getElementsByClassName("fav")!;
-    let cards = Array.prototype.slice.call(tmp);
+    
+    
     let index:number =0;
+ 
+    
     for(let i=0;i<cards.length+1;i++) {
+
         if(cards[i].innerHTML===""){
             index = i;
             i = cards.length+1;
+        } else if (i === 3){
+            index = 0;
         }
+
     }
-    cards[index].innerHTML=card;
+    cards[index].innerHTML = card;
+
 }
 
 function temp(x: number){
@@ -135,13 +142,6 @@ function addFav(){
         window.localStorage.setItem('Fav',answer.name);
     }
 }
-
-
-function myLocation(){
-    fetch('https://extreme-ip-lookup.com/json/').then( res => res.json()).then(response => {getWeather(response.country)});
-    
-}
-
 
 
 function getIcon(x :any){
