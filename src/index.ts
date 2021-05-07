@@ -1,33 +1,3 @@
-//THIS IS THE ENTRY FILE - WRITE YOUR MAIN LOGIC HERE!
-
-
-
-
-/*
-import { helloWorld, Beispiel } from "./myModule";
-import { alertMe } from "./myOtherModule";
-
-console.log(helloWorld);
-customElements.define("my-beispiel", Beispiel);
-
-alertMe();
-
-const myInputValue = document.querySelector<HTMLInputElement>("#myInput");
-
-const myInputValueAlternate = document.querySelector(
-  "#myInput"
-) as HTMLInputElement;
-
-document
-  .querySelector<HTMLInputElement>("#myInput")
-  ?.addEventListener("focus", doSmth);
-
-function doSmth(e: UIEvent) {
-  const val = e.target as HTMLInputElement;
-  console.log(e, val.value);
-}
-*/
-
 const appId: string="9ca27b3b3c74c643772ca6556ca4a8a7";
 //const statusSvg;
 let answer: any;
@@ -64,6 +34,29 @@ function getWeatherFav(){
 
     let favs : Array<any> = [];
     
+    fetch('https://extreme-ip-lookup.com/json/')
+    .then( res => res.json())
+    .catch(function(error){
+        errorFetch(error);
+    })
+    .then(response => {
+      let country = response.country;
+      fetch(`http://api.openweathermap.org/data/2.5/weather?q=${country}&appid=${appId}`).then(result => result.json())
+      .then(data => {
+            
+        document.getElementById("location")!.innerHTML=`<div class="justify-content-center align-items-center">
+        <div class="col-12"><div class="${statusSvg} statusicon">
+        </div><p>Land: ${country} ${Math.round(data.main.temp-273.15)} Grad</p>
+        </div>
+        </div>`;
+        })
+        .catch(function(error){
+            errorFetch(error);
+        });
+    });
+    
+
+
     favs[0] = window.localStorage.getItem('Fav');
     favs[1] = window.localStorage.getItem('Fav1');
     favs[2] = window.localStorage.getItem('Fav2');
@@ -71,19 +64,31 @@ function getWeatherFav(){
     for (let index = 0; index < favs.length; index++) {
         if (favs[index]!==null){
             fetch(`http://api.openweathermap.org/data/2.5/weather?q=${favs[index]}&appid=${appId}`).then(result => result.json())
+            .catch(function(error){
+                errorFetch(error);
+            })
             .then(data => {
                 createCard(data);
                 answer = data;
-                console.log(data);
-        
+                console.log(data);       
+            })
+            .catch(function(error){
+                errorFetch(error);
             });
-        }
-        
+        }   
     }
-    
+    if(document.getElementById('second')!.getBoundingClientRect().width>0){
+        document.getElementById('second')!.style.width = "0";
+    } else {
+        document.getElementById('second')!.style.width = "100vw";
+    }
 
 }
 
+
+function errorFetch(x: any){
+    alert(`Ein Fehler ist aufgetreten: ${x}`);
+}
 
 
 function createCard(x:any) {
